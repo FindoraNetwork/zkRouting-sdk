@@ -7,7 +7,7 @@ You can use `zkRouting-sdk` to transfer any FRC-20 asset (including FRA) on Find
 ### Installation
 
 ```bash
-npm install zkRouting-sdk
+npm install zk-routing-sdk
 ```
 
 ### Requirement wasm package
