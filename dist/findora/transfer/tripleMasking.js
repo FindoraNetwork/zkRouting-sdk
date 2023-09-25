@@ -1,22 +1,20 @@
 import sleep from 'sleep-promise';
 import { Sdk } from '_src/Sdk';
-import { getAXfrPrivateKeyByBase64, getAXfrViewKeyByBase64, getAXfrPublicKeyByBase64 } from '_src/findora/keypair/keypair';
+import { getAXfrPrivateKeyByBase64, getAXfrPublicKeyByBase64 } from '_src/findora/keypair/keypair';
 import { getOwnedAbars, submitTransaction, getHashSwap, getAbarOwnerMemo, getMTLeafInfo } from '_src/findora/apis/apis';
 import { getOwnedUtxo, getTransactionBuilder } from '_src/findora/services/services';
 import { getLedger } from '_src/findora/ledger';
 import { formatWasmErrorMessage } from '_src/utils';
 import { SdkError, ErrorCodes } from '_src/auth';
-const getAnonKeypairFromJson = async (anonKeys) => {
-    const { axfrSpendKey, axfrPublicKey, axfrViewKey } = anonKeys;
-    const [axfrSpendKeyConverted, axfrViewKeyConverted, axfrPublicKeyConverted] = await Promise.all([
-        getAXfrPrivateKeyByBase64(axfrSpendKey),
-        getAXfrViewKeyByBase64(axfrViewKey),
-        getAXfrPublicKeyByBase64(axfrPublicKey), // AXfrPubKey
+const getAnonKeypairFromJson = async (wallet) => {
+    const { privateKey, publickey } = wallet;
+    const [aXfrSecretKeyConverted, axfrPublicKeyConverted] = await Promise.all([
+        getAXfrPrivateKeyByBase64(privateKey),
+        getAXfrPublicKeyByBase64(publickey),
     ]);
     return {
-        axfrSpendKeyConverted,
-        axfrPublicKeyConverted,
-        axfrViewKeyConverted,
+        aXfrSecretKeyConverted,
+        axfrPublicKeyConverted
     };
 };
 const getOwnedAbar = async (commitment) => {
@@ -175,7 +173,7 @@ export const barToAbar = async (data, sids = []) => {
 };
 export const abarToBar = async (sender, receiver, commitments) => {
     const ledger = await getLedger();
-    const { axfrSpendKeyConverted: aXfrSpendKeySender } = await getAnonKeypairFromJson(sender);
+    const { aXfrSecretKeyConverted } = await getAnonKeypairFromJson(sender);
     let transactionBuilder = await getTransactionBuilder();
     const ownedAbarToUseAsSources = await Promise.all(commitments.map(getOwnedAbar));
     // add_operation_abar_to_bar
@@ -225,7 +223,7 @@ export const abarToBar = async (sender, receiver, commitments) => {
             throw new SdkError({ errorCode: ErrorCodes.FAILED_TO_CONVERT_MERKLE_PROOF_FROM_JSON });
         }
         try {
-            transactionBuilder = transactionBuilder.add_operation_abar_to_bar(myOwnedAbar, abarOwnerMemo, myMTLeafInfo, aXfrSpendKeySender, receiverXfrPublicKey, false, false);
+            transactionBuilder = transactionBuilder.add_operation_abar_to_bar(myOwnedAbar, abarOwnerMemo, myMTLeafInfo, aXfrSecretKeyConverted, receiverXfrPublicKey, false, false);
         }
         catch (error) {
             throw new SdkError({

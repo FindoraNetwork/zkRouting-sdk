@@ -1,24 +1,22 @@
 import sleep from 'sleep-promise';
 
 import { Sdk } from '_src/Sdk';
-import { getAXfrPrivateKeyByBase64, getAXfrViewKeyByBase64, getAXfrPublicKeyByBase64 } from '_src/findora/keypair/keypair';
+import { getAXfrPrivateKeyByBase64, getAXfrPublicKeyByBase64 } from '_src/findora/keypair/keypair';
 import { getOwnedAbars, submitTransaction, getHashSwap, getAbarOwnerMemo, getMTLeafInfo } from '_src/findora/apis/apis';
 import { getOwnedUtxo, getTransactionBuilder } from '_src/findora/services/services';
 import { getLedger } from '_src/findora/ledger';
 import { formatWasmErrorMessage } from '_src/utils';
 import { SdkError, ErrorCodes } from '_src/auth';
 
-const getAnonKeypairFromJson = async (anonKeys: FindoraWallet.IAnonWallet) => {
-  const { axfrSpendKey, axfrPublicKey, axfrViewKey } = anonKeys;
-  const [axfrSpendKeyConverted, axfrViewKeyConverted, axfrPublicKeyConverted] = await Promise.all([
-    getAXfrPrivateKeyByBase64(axfrSpendKey), // AXfrSpendKey
-    getAXfrViewKeyByBase64(axfrViewKey), // AxfrViewKey
-    getAXfrPublicKeyByBase64(axfrPublicKey), // AXfrPubKey
+const getAnonKeypairFromJson = async (wallet: FindoraWallet.IWallet) => {
+  const { privateKey, publickey } = wallet;
+  const [aXfrSecretKeyConverted, axfrPublicKeyConverted] = await Promise.all([
+    getAXfrPrivateKeyByBase64(privateKey),
+    getAXfrPublicKeyByBase64(publickey),
   ]);
   return {
-    axfrSpendKeyConverted,
-    axfrPublicKeyConverted,
-    axfrViewKeyConverted,
+    aXfrSecretKeyConverted,
+    axfrPublicKeyConverted
   };
 };
 
@@ -205,7 +203,7 @@ export const abarToBar = async (
   commitments: string[],
 ) => {
   const ledger = await getLedger();
-  const { axfrSpendKeyConverted: aXfrSpendKeySender } = await getAnonKeypairFromJson(sender);
+  const { aXfrSecretKeyConverted } = await getAnonKeypairFromJson(sender);
 
   let transactionBuilder = await getTransactionBuilder();
 
@@ -267,7 +265,7 @@ export const abarToBar = async (
         myOwnedAbar,
         abarOwnerMemo,
         myMTLeafInfo,
-        aXfrSpendKeySender,
+        aXfrSecretKeyConverted,
         receiverXfrPublicKey,
         false,
         false,

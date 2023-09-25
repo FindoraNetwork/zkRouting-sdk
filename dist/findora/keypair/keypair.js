@@ -1,30 +1,6 @@
 import { getLedger } from '_src/findora/ledger';
 import { generateSeedString } from '_src/utils';
 import { SdkError, ErrorCodes } from '_src/auth';
-export const genAnonKeys = async () => {
-    try {
-        const ledger = await getLedger();
-        const anonKeys = ledger.gen_anon_keys();
-        const axfrPublicKey = anonKeys.pub_key;
-        const axfrSpendKey = anonKeys.spend_key;
-        const axfrViewKey = anonKeys.view_key;
-        const formattedAnonKeys = {
-            axfrPublicKey,
-            axfrSpendKey,
-            axfrViewKey,
-        };
-        try {
-            anonKeys.free();
-        }
-        catch (error) {
-            throw new Error(`could not get release the anonymous keys instance  "${error.message}" `);
-        }
-        return formattedAnonKeys;
-    }
-    catch (err) {
-        throw new Error(`could not get anon keys, "${err}" `);
-    }
-};
 export async function createWallet(privateStr) {
     const ledger = await getLedger();
     let keypair = ledger.new_keypair();
@@ -44,7 +20,7 @@ export async function createWallet(privateStr) {
 export const getWallet = async (privateStr) => {
     const _walletStart = createWallet(privateStr);
     const _walletEnd = createWallet();
-    const _anonWallet = genAnonKeys();
+    const _anonWallet = createWallet();
     try {
         const [walletStart, anonWallet, walletEnd] = await Promise.all([_walletStart, _anonWallet, _walletEnd]);
         const seeds = [];
@@ -66,7 +42,7 @@ export const getWallet = async (privateStr) => {
 export const getAXfrPublicKeyByBase64 = async (publicKey) => {
     const ledger = await getLedger();
     try {
-        return ledger.axfr_pubkey_from_string(publicKey);
+        return ledger.public_key_from_base64(publicKey);
     }
     catch (err) {
         throw new SdkError({ errorCode: ErrorCodes.FAILED_TO_CONVERT_AXFR_PUBKEY_FROM_STRING, message: err.message });
@@ -74,20 +50,12 @@ export const getAXfrPublicKeyByBase64 = async (publicKey) => {
 };
 export const getAXfrPrivateKeyByBase64 = async (privateKey) => {
     const ledger = await getLedger();
+    const toSend = `"${privateKey}"`;
     try {
-        return ledger.axfr_keypair_from_string(privateKey);
+        return ledger.create_keypair_from_secret(toSend);
     }
     catch (err) {
         throw new SdkError({ errorCode: ErrorCodes.FAILED_TO_CONVERT_AXFR_KEYPAIR_FROM_STRING, message: err.message });
-    }
-};
-export const getAXfrViewKeyByBase64 = async (privateKey) => {
-    const ledger = await getLedger();
-    try {
-        return ledger.axfr_viewkey_from_string(privateKey);
-    }
-    catch (err) {
-        throw new SdkError({ errorCode: ErrorCodes.FAILED_TO_CONVERT_AXFR_VIEWKEY_FROM_STRING, message: err.message });
     }
 };
 //# sourceMappingURL=keypair.js.map
