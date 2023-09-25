@@ -3,7 +3,7 @@ import { TransactionReceipt } from 'ethereum-abi-types-generator';
 
 import * as contracts from '_src/evm/contracts';
 import { gasOptions } from '_src/web3';
-import { SendOptions as PrismBridgeSendOptions } from '_src/evm/contracts/types/PrismBridge';
+import { SendOptions as PrismBridgeSendOptions } from '_src/evm/contracts/types/SimBridge';
 import { SdkError, ErrorCodes } from '_src/auth';
 import { fraAddressToHashAddress, calculationDecimalsAmount } from '_src/utils';
 

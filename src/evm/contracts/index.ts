@@ -7,12 +7,10 @@ import BridgeAbi from './abis/BridgeAbi.json';
 import RelayerAbi from './abis/RelayerAbi.json';
 import SimBridgeAbi from './abis/SimBridgeAbi.json';
 import DeckAbi from './abis/DeckAbi.json';
-import PrismBridgeAbi from './abis/PrismBridgeAbi.json';
 import PoolAbi from './abis/PoolAbi.json';
 import { ContractContext as Relayer } from './types/Relayer';
 import { ContractContext as SimBridge } from './types/SimBridge';
 import { ContractContext as Deck } from './types/Deck';
-import { ContractContext as PrismBridge } from './types/PrismBridge';
 import { ContractContext as Bridge } from './types/Bridge';
 import { ContractContext as Erc20 } from './types/Erc20';
 import { ContractContext as Pool } from './types/Pool';
@@ -45,7 +43,7 @@ export const deck = (address: string, provider?: string) => {
 };
 
 export const prismBridge = (address: string, provider?: string) => {
-  return createContract(address, PrismBridgeAbi, provider) as unknown as PrismBridge;
+  return createContract(address, SimBridgeAbi, provider) as unknown as SimBridge;
 };
 
 export const pool = (address: string, provider?: string) => {
